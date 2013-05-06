@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
 	ChangetoC0();
 	ReadFile("2.bmp");
 	ChangetoC1();
-	lineinit();
-	Morphing(0.5);
+//	lineinit();
+//	Morphing(0.5);
 	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -74,7 +74,7 @@ void ReadFile(const char* filename)
 
 void MyDisplay()
 {
-	glDrawPixels(ImageWidth, ImageHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData4);
+	glDrawPixels(ImageWidth, ImageHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData2);
 	glutSwapBuffers();
 }
 
