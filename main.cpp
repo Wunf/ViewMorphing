@@ -17,9 +17,9 @@ static GLubyte* PixelData3;
 static GLubyte* PixelData4;
 static GLubyte* PixelData5;
 
-const double f = 5.0f;
-const double d = 100.0f;
-const double pai = 3.1415926;
+const double f = 0.5f;
+const double d = 100000.0f;
+const double pai = 3.1415926f;
 int lines[10][2][2], lined[10][2][2];
 
 
@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
 	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(ImageWidth, ImageHeight);
+	glutInitWindowSize(ImageWidth * 2, ImageHeight * 2);
 	glutInitWindowPosition(50, 70);
 	glutCreateWindow("View Morphing");
 
@@ -74,7 +74,7 @@ void ReadFile(const char* filename)
 
 void MyDisplay()
 {
-	glDrawPixels(ImageWidth, ImageHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData2);
+	glDrawPixels(ImageWidth * 2, ImageHeight * 2, GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData2);
 	glutSwapBuffers();
 }
 
@@ -184,34 +184,57 @@ void ChangetoC0()
 		}
 	}
 	
-	PixelData2 = (GLubyte*)malloc(PixelLength);
-	for(int i = 0; i < PixelLength; ++i)
+	PixelData2 = (GLubyte*)malloc(PixelLength * 4);
+	for(int i = 0; i < PixelLength * 4; ++i)
 		PixelData2[i] = 255;
 	int x, y;
 	for(int i = 0; i < 10; ++i)
 	{
 		for(int j = 0; j < 2; ++j)
 		{
-			x = int(temp[0][0] * double(lines[i][j][0]) + temp[0][1] * double(lines[i][j][1]) + temp[0][2]);
-			y = int(temp[1][0] * double(lines[i][j][0]) + temp[1][1] * double(lines[i][j][1]) + temp[1][2]); 
+			x = int((temp[0][0] * double(lines[i][j][0]) + temp[0][1] * double(lines[i][j][1]) + temp[0][2]) / sin(pai / 4));
+			y = int((temp[1][0] * double(lines[i][j][0]) + temp[1][1] * double(lines[i][j][1]) + temp[1][2]) / sin(pai / 4)); 
 			lines[i][j][0] = x;
 			lines[i][j][1] = y;
 		}
 	}
 	
-	for(int i = 0; i < ImageWidth; ++i)
+	for(int i = 0; i < 3; ++i)
 	{
-		for(int j = 0; j < ImageHeight; ++j)
+		for(int j = 0; j < 3; ++j)
+		{
+			H[i][j] = pi[i][j];
+		}
+	}
+	
+	if(InverseMatrix(Hp[0], 3))
+		printf("error");
+	
+	for(int i = 0; i < 3; ++i)
+	{
+		for(int j = 0; j < 3; ++j)
+		{
+			temp[i][j] = 0.0f;
+			temp[i][j] += H[i][0] * Hp[0][j] + H[i][1] * Hp[1][j] + H[i][2] * Hp[2][j];
+		}
+	}
+	
+	for(int i = 0; i < ImageWidth * 2; ++i)
+	{
+		for(int j = 0; j < ImageHeight * 2; ++j)
 		{	
 			/*if(i == 2 && j == 164)
 				i = 2;*/
-			x = int(temp[0][0] * double(i) + temp[0][1] * double(j) + temp[0][2]);
-			y = int(temp[1][0] * double(i) + temp[1][1] * double(j) + temp[1][2]);
-			int index = ((ImageHeight - y - 1) * ImageWidth * 3) + x * 3;
-			int index2 = ((ImageHeight - j - 1) * ImageWidth * 3) + i * 3;
-			PixelData2[index] = PixelData[index2];
-			PixelData2[index + 1] = PixelData[index2 + 1];
-			PixelData2[index + 2] = PixelData[index2 + 2];
+			x = int((temp[0][0] * double(i) + temp[0][1] * double(j) + temp[0][2]) * sin(pai / 4));
+			y = int((temp[1][0] * double(i) + temp[1][1] * double(j) + temp[1][2]) * sin(pai / 4));
+			int index2 = ((ImageHeight - y - 1) * ImageWidth * 3) + x * 3;
+			int index = ((ImageHeight * 2 - j - 1) * ImageWidth * 2 * 3) + i * 3;
+			if(x >= 0 && x < ImageWidth && y >= 0 && y < ImageHeight)
+			{
+				PixelData2[index] = PixelData[index2];
+				PixelData2[index + 1] = PixelData[index2 + 1];
+				PixelData2[index + 2] = PixelData[index2 + 2];
+			}
 		}
 	}
 }
