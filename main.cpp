@@ -17,8 +17,8 @@ static GLubyte* PixelData3;
 static GLubyte* PixelData4;
 static GLubyte* PixelData5;
 
-const double f = 800.0f;
-const double d = 100.0f;
+const double f = 5.0f;
+const double d = 1000.0f;
 const double pai = 3.1415926f;
 int lines[10][2][2], lined[10][2][2];
 
@@ -91,151 +91,57 @@ void keyboard (unsigned char key, int x, int y)
 
 void ChangetoC0()
 {
-	double T[4][4];
-	for(int i = 0; i < 4; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			T[i][j] = 0.0f;
-		}
-	}
-	T[0][0] = 1.0f; T[1][1] = 1.0f; T[2][2] = 1.0f; T[3][3] = 1.0f; T[0][3] = d * cos(pai / 4);
+	double R[3][3];
+	R[0][0] = cos(-pai / 4);     R[0][1] = 0.0f;     R[0][2] = -sin(-pai / 4) * f; 
+	R[1][0] = 0.0f;              R[1][1] = 1.0f;     R[1][2] = 0.0f; 
+	R[2][0] = sin(-pai / 4) / f; R[2][1] = 0.0f;     R[2][2] = cos(-pai / 4);
+
+	// const double a = 200.0f;
+	// double p[6][3], pp[6][2];
+	// p[0][0] = -a; p[0][1] = a; p[0][2] = cos(pai / 4) * d - a;
+	// p[1][0] = -a; p[1][1] = -a; p[1][2] = cos(pai / 4) * d - a;
+	// p[2][0] = a; p[2][1] = -a; p[2][2] = cos(pai / 4) * d - a;
+	// p[3][0] = a; p[3][1] = a; p[3][2] = cos(pai / 4) * d - a;
+	// p[4][0] = -a; p[4][1] = a; p[4][2] = cos(pai / 4) * d + a;
+	// p[5][0] = -a; p[5][1] = -a; p[5][2] = cos(pai / 4) * d + a;
 	
-	double R[4][4];
-	R[0][0] = cos(pai / 4); R[0][1] = 0.0f; R[0][2] = -sin(pai / 4); R[0][3] = 0.0f;
-	R[1][0] = 0.0f; R[1][1] = 1.0f; R[1][2] = 0.0f; R[1][3] = 0.0f;
-	R[2][0] = sin(pai / 4); R[2][1] = 0.0f; R[2][2] = cos(pai / 4); R[2][3] = 0.0f;
-	R[3][0] = 0.0f; R[3][1] = 0.0f; R[3][2] = 0.0f; R[3][3] = 1.0f;
-	
-	double pi[3][4];
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			pi[i][j] = 0.0f;
-		}
-	}
-	pi[0][0] = f; pi[1][1] = f; pi[2][2] = 1.0f;
-	
-	
-	double temp[3][4];
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			temp[i][j] = 0.0f;
-			temp[i][j] += pi[i][0] * R[0][j] + pi[i][1] * R[1][j] + pi[i][2] * R[2][j] + pi[i][3] * R[3][j];
-		}
-	}
-	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			pi[i][j] = temp[i][j];
-		}
-	}
-	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			temp[i][j] = 0.0f;
-			temp[i][j] += pi[i][0] * T[0][j] + pi[i][1] * T[1][j] + pi[i][2] * T[2][j] + pi[i][3] * T[3][j];
-		}
-	}
-	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 4; ++j)
-		{
-			pi[i][j] = temp[i][j];
-		}
-	}
-	
-	double H[3][3];
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-		{
-			H[i][j] = pi[i][j];
-		}
-	}
-	
-	if(InverseMatrix(H[0], 3))
-		printf("error");
-		
-	double Hp[3][3];
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-		{
-			Hp[i][j] = 0.0f;
-		}
-	}
-	Hp[0][0] = f; Hp[1][1] = f; Hp[2][2] = 1.0f;
-	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-		{
-			temp[i][j] = 0.0f;
-			temp[i][j] += Hp[i][0] * H[0][j] + Hp[i][1] * H[1][j] + Hp[i][2] * H[2][j];
-		}
-	}
+	// for(int i = 0; i < 6; ++i)
+	// {
+		// pp[i][0] = temp[0][0] * p[i][0] + temp[0][1] * p[i][1] + temp[0][2] * p[i][2] + temp[0][3];
+		// pp[i][0] /= RT[2][0] * p[i][0] + RT[2][1] * p[i][1] + RT[2][2] * p[i][2] + RT[2][3];
+		// pp[i][1] = temp[1][0] * p[i][0] + temp[1][1] * p[i][1] + temp[1][2] * p[i][2] + temp[1][3];
+		// pp[i][1] /= RT[2][0] * p[i][0] + RT[2][1] * p[i][1] + RT[2][2] * p[i][2] + RT[2][3];
+		// printf("%f %f\n", pp[i][0], pp[i][1]);
+	// }
 	
 	PixelData2 = (GLubyte*)malloc(PixelLength * 3);
 	for(int i = 0; i < PixelLength * 3; ++i)
 		PixelData2[i] = 255;
-	int x, y, x1, y1;
-	for(int i = 0; i < 10; ++i)
-	{
-		for(int j = 0; j < 2; ++j)
-		{
-			x = int((temp[0][0] * double(lines[i][j][0]) + temp[0][1] * double(lines[i][j][1]) + temp[0][2]) / sin(pai / 4));
-			y = int((temp[1][0] * double(lines[i][j][0]) + temp[1][1] * double(lines[i][j][1]) + temp[1][2]) / sin(pai / 4)); 
-			lines[i][j][0] = x;
-			lines[i][j][1] = y;
-		}
-	}
+	double x, y, x1, y1;
 	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-		{
-			H[i][j] = pi[i][j];
-		}
-	}
-	
-	if(InverseMatrix(Hp[0], 3))
-		printf("error");
-	
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 3; ++j)
-		{
-			temp[i][j] = 0.0f;
-			temp[i][j] += H[i][0] * Hp[0][j] + H[i][1] * Hp[1][j] + H[i][2] * Hp[2][j];
-		}
-	}
-	
-	for(int i = 0; i < ImageWidth * 3 ; ++i)
+	for(int i = 0; i < ImageWidth; ++i)
 	{
 		for(int j = 0; j < ImageHeight ; ++j)
 		{	
-			/*if(i == 2 && j == 164)
-				i = 2;*/
-			x = i - ImageWidth / 2;
-			y = ImageHeight / 2 - j;
-			x1 = int((temp[0][0] * double(x) + temp[0][1] * double(y) + temp[0][2]) * sin(pai / 4));
-			y1 = int((temp[1][0] * double(x) + temp[1][1] * double(y) + temp[1][2]) * sin(pai / 4));
-			int index2 = ((ImageHeight  + y - ImageHeight / 2 - 1) * ImageWidth * 3  * 3) + (x + ImageWidth / 2) * 3;
-			int index = ((ImageHeight + y1 - ImageHeight / 2 - 1) * ImageWidth * 3) + (x1 + ImageWidth / 2) * 3;
-			if(x1 >= - ImageWidth / 2 && x1 < ImageWidth / 2 && y1 > -ImageHeight / 2 && y1 <= ImageHeight / 2)
+			x = (double(i) - double(ImageWidth) / 2) / 100.0f;
+			y = (double(ImageHeight) / 2 - double(j)) / 100.0f;	
+			if(x <= 0)
+			{
+				x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * (1 / sin(pai / 4));
+				y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * (1 / sin(pai / 4));
+			}
+			else
+			{
+				x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * (double(x) * 0.39f + 1 / sin(pai / 4));
+				y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * (double(x) * 0.39f + 1 / sin(pai / 4));
+			}
+			int index = ((ImageHeight + int(y * 100.0f + 0.5f) - ImageHeight / 2 - 1) * ImageWidth * 3) + (int(x * 100.0f + 0.5f) + ImageWidth / 2) * 3;
+			int index2 = ((ImageHeight + int(y1 * 100.0f + 0.5f) - ImageHeight / 2 - 1) * ImageWidth * 3 * 3) + (int(x1 * 100.0f + 0.5f) + ImageWidth / 2) * 3;
+			if(index2 >= 0 && index2 < PixelLength * 3)
 			{
 				PixelData2[index2] = PixelData[index];
 				PixelData2[index2 + 1] = PixelData[index + 1];
-				PixelData2[index2+ 2] = PixelData[index+ 2];
+				PixelData2[index2 + 2] = PixelData[index+ 2];
 			}
 		}
 	}
