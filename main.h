@@ -1,10 +1,8 @@
 void ReadFile(const char* filename);
 void lineinit();
-void ChangetoC0();
-void ChangetoC1();
+void ReprojectionI0();
+void ReprojectionI1();
 void MyDisplay();
 void Morphing(double t);
 void reshape(int w, int h);
 void keyboard (unsigned char key, int x, int y);
-void swap(double &a,double &b);
-int InverseMatrix(double *matrix,const int &row);
