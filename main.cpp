@@ -18,6 +18,7 @@ static GLubyte* PixelData;
 static GLubyte* PixelData2;
 static GLubyte* PixelData3;
 static GLubyte* PixelData4;
+static GLubyte* PixelData5;
 
 const double f = 5.0f;
 const double d = 1000.0f;
@@ -36,7 +37,7 @@ int main(int argc, char * argv[])
 	ReprojectionI0();
 	ReadFile("2.bmp");
 	ReprojectionI1();
-	t = 0.0f;
+	t = 0.5f;
 	Morphing(t);
 	
 	glutInit(&argc, argv);
@@ -81,7 +82,7 @@ void ReadFile(const char* filename)
 
 void MyDisplay()
 {
-	glDrawPixels(ImageWidth * 3, ImageHeight , GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData4);
+	glDrawPixels(ImageWidth * 3, ImageHeight , GL_BGR_EXT, GL_UNSIGNED_BYTE, PixelData5);
 	glutSwapBuffers();
 }
 
@@ -94,10 +95,24 @@ void keyboard (unsigned char key, int x, int y)
 		exit(0);
 		break;
 	case 'n':
-		t += 0.1f;
-		free(PixelData4);
-		Morphing(t);
-		glutPostRedisplay();
+		if(t < 2.0f)
+		{
+			t += 0.1f;
+			free(PixelData4);
+			free(PixelData5);
+			Morphing(t);
+			glutPostRedisplay();
+		}
+		break;
+	case 'm':
+		if(t > 0.0f)
+		{
+			t -= 0.1f;
+			free(PixelData4);
+			free(PixelData5);
+			Morphing(t);
+			glutPostRedisplay();
+		}
 		break;
 	}
 }
@@ -289,6 +304,7 @@ void Morphing(double t)
 	int (*pp1)[2], (*pp2)[2];
 	GLubyte * pImage;
 	int point[pn][2];
+	double tbak = t;
 	
 	for(int i = 0; i < pn; ++i)
 	{
@@ -368,6 +384,66 @@ void Morphing(double t)
 				PixelData4[index] = pImage[index2];
 				PixelData4[index + 1] = pImage[index2 + 1];
 				PixelData4[index + 2] = pImage[index2 + 2];
+			}
+		}
+	}
+	
+	double R[3][3];
+	R[0][0] = cos(pai / 4 * (1 - tbak));     R[0][1] = 0.0f;     R[0][2] = -sin(pai / 4 * (1 - tbak)) * f; 
+	R[1][0] = 0.0f;              		  	 R[1][1] = 1.0f;     R[1][2] = 0.0f; 
+	R[2][0] = sin(pai / 4 * (1 - tbak)) / f; R[2][1] = 0.0f;     R[2][2] = cos(pai / 4 * (1 - tbak));
+	
+	double tip;
+	if(tbak < 1.0f)
+		tip = point[2][0];
+	else
+		tip = point[4][0];
+	PixelData5 = (GLubyte*)malloc(PixelLength * 3);
+	for(int i = 0; i < PixelLength * 3; ++i)
+		PixelData5[i] = 255;
+	double x, y, x1, y1;
+	
+	for(int i = 0; i < ImageWidth * 3; ++i)
+	{
+		for(int j = 0; j < ImageHeight ; ++j)
+		{	
+			x = (double(i) - double(ImageWidth) / 2) / 100.0f;
+			y = (double(ImageHeight) / 2 - double(j)) / 100.0f;	
+			if(tbak < 1.0f)
+			{
+				if(i <= tip)
+				{
+					x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * (1 / sqrt(1 + (1 - t) * (1 - t)));
+					y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * (1 / sqrt(1 + (1 - t) * (1 - t)));
+				}
+				else
+				{
+					x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * ((double(x) - (double(tip) - double(ImageWidth) / 2) / 100.0f) * (-0.03f) + (1 / sqrt(1 + (1 - t) * (1 - t))));
+					y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * ((double(x) - (double(tip) - double(ImageWidth) / 2) / 100.0f) * (-0.03f) + (1 / sqrt(1 + (1 - t) * (1 - t))));
+				}
+			}
+			else
+			{
+				if(i >= tip)
+				{
+					x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * (1 / sqrt(1 + (1 - t) * (1 - t)));
+					y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * (1 / sqrt(1 + (1 - t) * (1 - t)));
+				}
+				else
+				{
+					x1 = (R[0][0] * x + R[0][1] * y + R[0][2]) * ((double(x) - (double(tip) - double(ImageWidth) / 2) / 100.0f) * (0.03f) + (1 / sqrt(1 + (1 - t) * (1 - t))));
+					y1 = (R[1][0] * x + R[1][1] * y + R[1][2]) * ((double(x) - (double(tip) - double(ImageWidth) / 2) / 100.0f) * (0.03f) + (1 / sqrt(1 + (1 - t) * (1 - t))));
+				}
+			}
+			int n = ImageHeight / 2 - int(y1 * 100.0f + 0.5f);
+			int m = int(x1 * 100.0f + 0.5f) + ImageWidth / 2;
+			int index = ((ImageHeight - j - 1) * ImageWidth * 3 * 3) + i * 3;
+			int index2 = ((ImageHeight - n - 1) * ImageWidth * 3 * 3) + m * 3;
+			if(index2 >= 0 && index2 < PixelLength * 3)
+			{
+				PixelData5[index2] = PixelData4[index];
+				PixelData5[index2 + 1] = PixelData4[index + 1];
+				PixelData5[index2 + 2] = PixelData4[index+ 2];
 			}
 		}
 	}
